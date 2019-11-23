@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Comparator;
 
 
-public class PriorityScheduler_other extends Scheduler 
+public class PriorityScheduler extends Scheduler 
 {
 	public ThreadQueue newThreadQueue(boolean transferPriority) 
 	{
