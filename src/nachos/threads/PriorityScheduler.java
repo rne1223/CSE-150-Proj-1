@@ -10,7 +10,7 @@ import java.util.ArrayList;
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-public final class PriorityScheduler extends Scheduler {
+public class PriorityScheduler extends Scheduler {
 
     public static final int priorityDefault = 1;
     public static final int priorityMinimum = 0;
