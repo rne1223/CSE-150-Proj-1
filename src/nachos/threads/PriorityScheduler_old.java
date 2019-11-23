@@ -23,11 +23,11 @@ import java.util.LinkedList;
  * A priority scheduler must partially solve the priority inversion problem; in
  * particular, priority must be donated through locks, and through joins.
  */
-public class PriorityScheduler extends Scheduler {
+public class PriorityScheduler_old extends Scheduler {
     /**
      * Allocate a new priority scheduler.
      */
-    public PriorityScheduler() {
+    public PriorityScheduler_old() {
     }
     
     /**
