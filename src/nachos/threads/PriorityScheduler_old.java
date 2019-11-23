@@ -27,7 +27,7 @@ public class PriorityScheduler_old extends Scheduler {
     /**
      * Allocate a new priority scheduler.
      */
-    public PriorityScheduler() {
+    public PriorityScheduler_old() {
     }
     
     /**
