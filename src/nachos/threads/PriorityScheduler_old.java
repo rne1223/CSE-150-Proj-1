@@ -57,8 +57,7 @@ public class PriorityScheduler_old extends Scheduler {
     public void setPriority(KThread thread, int priority) {
 		Lib.assertTrue(Machine.interrupt().disabled());
 				
-		Lib.assertTrue(priority >= priorityMinimum &&
-			priority <= priorityMaximum);
+		Lib.assertTrue(priority >= priorityMinimum && priority <= priorityMaximum);
 		
 		getThreadState(thread).setPriority(priority);
     }

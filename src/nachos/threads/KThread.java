@@ -47,7 +47,8 @@ public class KThread {
 	    tcb = new TCB();
 	}	    
 	else {
-	    readyQueue = ThreadedKernel.scheduler.newThreadQueue(false);
+	    // readyQueue = ThreadedKernel.scheduler.newThreadQueue(false);
+	    readyQueue = ThreadedKernel.scheduler.newThreadQueue(true);
 	    readyQueue.acquire(this);	    
 
 	    currentThread = this;
@@ -404,7 +405,7 @@ public class KThread {
 	
 	public void run() {
         for (int i = 0; i < 2; i++) {
-            System.out.println("*** thread " + which + " looped " + i + " times");
+            System.out.println(currentThread.getName() + " " + which + " looped " + i + " times");
             currentThread.yield();
         }
 	}
@@ -418,7 +419,12 @@ public class KThread {
     public static void selfTest() {
         Lib.debug(dbgThread, "Enter KThread.selfTest");
 
-        new KThread(new PingTest(1)).setName("forked thread").fork();
+        new KThread(new PingTest(1)).setName("ft-1").fork();
+        new KThread(new PingTest(1)).setName("ft-2").fork();
+        // new KThread(new PingTest(1)).setName("ft-3").fork();
+        // new KThread(new PingTest(1)).setName("ft-4").fork();
+        // new KThread(new PingTest(1)).setName("ft-5").fork();
+        // new KThread(new PingTest(1)).setName("ft-6").fork();
         new PingTest(0).run();
     }
 

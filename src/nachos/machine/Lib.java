@@ -119,11 +119,11 @@ public final class Lib {
      * add your own.
      *
      * @param	flag	the debug flag that must be set to print this message.
-     * @param	message	the debug message.
+     * @param	object	the debug message.
      */
-    public static void debug(char flag, String message) {
+    public static void debug(char flag, Object object) {
 	if (test(flag))
-	    System.out.println(message);
+	    System.out.println(object);
     }
 
     /**
