@@ -5,58 +5,33 @@ import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.HashSet;
 import java.util.Comparator;
-import nachos.threads.PrioritySchedulerTest;
 
-/**
- * A scheduler that chooses threads based on their priorities.
- *
- * <p>
- * A priority scheduler associates a priority with each thread. The next thread
- * to be dequeued is always a thread with priority no less than any other
- * waiting thread's priority. Like a round-robin scheduler, the thread that is
- * dequeued is, among all the threads of the same (highest) priority, the
- * thread that has been waiting longest.
- *
- * <p>
- * Essentially, a priority scheduler gives access in a round-robin fassion to
- * all the highest-priority threads, and ignores all other threads. This has
- * the potential to
- * starve a thread if there's always a thread waiting with higher priority.
- *
- * <p>
- * A priority scheduler must partially solve the priority inversion problem; in
- * particular, priority must be donated through locks, and through joins.
- */
 
 public class PriorityScheduler extends Scheduler 
 {
-
-	// Variable for debugging
-	private static final char dbgQueue = 'q';
-
 	public ThreadQueue newThreadQueue(boolean transferPriority) 
 	{
 		return new PriorityQueue(transferPriority);
-	}
+	}//end threadqueue
 
 	public int getPriority(KThread thread) 
 	{
 		Lib.assertTrue(Machine.interrupt().disabled());
 		return getThreadState(thread).getPriority();
-	}
+	}//end getPriority
 
 	public int getEffectivePriority(KThread thread) 
 	{
 		Lib.assertTrue(Machine.interrupt().disabled());
 		return getThreadState(thread).getEffectivePriority();
-	}
+	}//end getEffectivePriority
 
 	public void setPriority(KThread thread, int priority) 
 	{
 		Lib.assertTrue(Machine.interrupt().disabled());
 		Lib.assertTrue(priority >= priorityMinimum && priority <= priorityMaximum);
 		getThreadState(thread).setPriority(priority);
-	}
+	}//end setPriority
 
 	public boolean increasePriority() 
 	{
@@ -70,7 +45,7 @@ public class PriorityScheduler extends Scheduler
 		setPriority(thread, priority+1);
 		Machine.interrupt().restore(intStatus);
 		return true;
-	}
+	}//end increasePriority
 
 	public boolean decreasePriority() 
 	{
@@ -83,12 +58,6 @@ public class PriorityScheduler extends Scheduler
 		setPriority(thread, priority-1);
 		Machine.interrupt().restore(intStatus);
 		return true;
-	}
-
-	public static void selfTest()
-	{
-		System.out.println("Running Priority Donation Tests");		
-		// PrioritySchedulerTest.run();
 	}
 
 	/**
@@ -118,24 +87,22 @@ public class PriorityScheduler extends Scheduler
 		PriorityQueue(boolean transferPriority) 
 		{
 			this.transferPriority = transferPriority;
-		}
+		}//end priorityqueue
 
 		public void waitForAccess(KThread thread) 
 		{
 			Lib.assertTrue(Machine.interrupt().disabled());
-			// Lib.debug(dbgQueue, printQueue());
 			getThreadState(thread).waitForAccess(this);
-			// Lib.debug(dbgQueue,"PriorityQueue waitForAccess: " + printQueue());
-		}
+		}//end waitforaccess
 
 		public void acquire(KThread thread) 
 		{
 			Lib.assertTrue(Machine.interrupt().disabled());
-			// Lib.debug(dbgQueue, printQueue());
 			getThreadState(thread).acquire(this);
-			// Lib.debug(dbgQueue, "PriorityQueue acquire "+ printQueue());
-		}
+		}//end acquire
 
+		//removed thread from  queue
+		//updates queue
 		public KThread nextThread() 
 		{
 			Lib.assertTrue(Machine.interrupt().disabled());
@@ -165,14 +132,15 @@ public class PriorityScheduler extends Scheduler
 							continue;
 						if(temp.pickNextThread().getWinningPriority() > this.owner.getEffectivePriority())
 							this.owner.effectivePriority = temp.pickNextThread().getWinningPriority();
-					}
-				}
-				
+					}//end while hasnext
+				}//end if owner
+
+				//acquire waitqueue
 				((ThreadState) thread.schedulingState).acquire(this);
-				((ThreadState) thread.schedulingState).waitingQueue = null;
-			}
+				((ThreadState)thread.schedulingState).waitingQueue = null;
+			}//end if thread
 			return thread;
-		}
+		}//end next thread
 
 		protected ThreadState pickNextThread() 
 		{
@@ -180,45 +148,47 @@ public class PriorityScheduler extends Scheduler
 			if (threadStates.isEmpty())
 				return null;
 			return threadStates.last();
-		}
+		}//end threadstate
 
-		public String printQueue() {
+		public void print() 
+		{
 			Lib.assertTrue(Machine.interrupt().disabled());
 			Iterator<ThreadState> it = threadStates.descendingIterator();
-
+			System.out.println("*************************");
 			int i = 0;
-			String temp= "--ThSt : " + threadStates.size() + " items [ ";
 			while (it.hasNext())
 			{
 				ThreadState curr = it.next();
-				temp += curr.thread.getName() + " EP: " + curr.getEffectivePriority() + 
-												// " Own: " +  curr.ownedQueues. + ", "
-												" Ow: " +  curr.waitingQueue.owner.thread.getName() + " " +
-												" OwS: " +  curr.waitingQueue.owner.ownedQueues.size() + ", ";
+				System.out.println(curr.thread + " has priority " + curr.getWinningPriority() + " and time " + curr.time);
 				i++;
-			}
-			temp += " ]";
-
+			}//end while
 			if (pickNextThread() != null)
-				System.out.println("Thread to be popped:" + pickNextThread().thread);
-			return temp;
-		}
-
-		@Override
-		public void print() {
-			// TODO Auto-generated method stub
-
-		}
-
+				System.out.println("Next thread to be popped is " + pickNextThread().thread);
+			System.out.println("DDDDDDDDDDDDDDDDDDDDDDDDD");
+		}//end print
 
 		public boolean transferPriority;
 
 		// holds threadstates
 		public TreeSet<ThreadState> threadStates = new TreeSet<ThreadState>(new ThreadComparator());
 		public ThreadState owner = null;
-
 	}//end class priorityqueue
 
+
+	private static class PriorityScheduleTest implements Runnable 
+	{
+		public PriorityScheduleTest(int expectedOrder) 
+		{
+			this.order = expectedOrder;
+		}//end priorityscheduletest (public)
+
+		public void run() 
+		{
+			System.out.println("Hi from " + this.order);
+		}//end run
+
+		private int order;
+	}//end class priorityscheduletest
 
 	/**
 	 * The scheduling state of a thread. This should include the thread's
@@ -234,29 +204,21 @@ public class PriorityScheduler extends Scheduler
 			this.thread = thread;
 			this.time = 0;
 			this.placement = 0;
-			if(Lib.test(dbgQueue))
-			{
-				this.priority = ((int)(Math.random()*7)+1);
-				setPriority(this.priority);
-			}
-			else
-			{
-				this.priority = priorityDefault;
-				setPriority(priorityDefault);
-			}
+			this.priority = priorityDefault;
+			setPriority(priorityDefault);
 			effectivePriority = priorityMinimum;
-		}
+		}//end threadstate
 
 		public int getPriority() 
 		{
 			return priority;
-		}
+		}//end getpriority
 
 		public int getEffectivePriority() 
 		{
 			Lib.assertTrue(Machine.interrupt().disabled());
 			return getWinningPriority();
-		}
+		}//end getEffectivePriority
 
 		public void setPriority(int priority) 
 		{
@@ -267,27 +229,29 @@ public class PriorityScheduler extends Scheduler
 			this.priority = priority;
 			recalculateThreadScheduling();
 			update();
-		}
+		}//end setPriority
 
 		public int getWinningPriority()
 		{
-			return priority > effectivePriority ? priority : effectivePriority;
-		}
+			if (this.priority > this.effectivePriority)
+				return priority;
+			else
+				return effectivePriority;
+		}//end getWinningpriority
 
 		public void waitForAccess(PriorityQueue waitQueue) 
 		{
 			Lib.assertTrue(Machine.interrupt().disabled());
-			// Lib.assertTrue(waitingQueue == null);
+			Lib.assertTrue(waitingQueue == null);
 
 			time = Machine.timer().getTime();
 			waitQueue.threadStates.add(this);
 			waitingQueue = waitQueue;
-			// Lib.debug(dbgQueue, printOwnedQueues(waitQueue));
 
 			if(placement == 0)
 				placement = placementInc++;
 			update();
-		}
+		}//end waitForAccess
 
 		public void acquire(PriorityQueue waitQueue) 
 		{
@@ -296,25 +260,21 @@ public class PriorityScheduler extends Scheduler
 				waitQueue.owner.ownedQueues.remove(waitQueue);
 
 			waitQueue.owner = this;
-			// Lib.debug(dbgQueue, printOwnedQueues(waitQueue));
 			ownedQueues.add(waitQueue);
-			// Lib.debug(dbgQueue, printOwnedQueues(waitQueue));
 
 			if (waitQueue.pickNextThread() == null)
 				return;
 
-			if (waitQueue.pickNextThread().getEffectivePriority() > this.getEffectivePriority() && 
-				waitQueue.transferPriority)
+			if (waitQueue.pickNextThread().getEffectivePriority() > this.getEffectivePriority() && waitQueue.transferPriority)
 			{
 				this.effectivePriority = waitQueue.pickNextThread().getEffectivePriority();
 				recalculateThreadScheduling();
 				update();
-			}
-		}
+			}//end if
+		}//end acquire
 
 		public void update() 
 		{
-			Lib.debug(dbgQueue, "Before Update " + printOwnedQueues(waitingQueue));
 			if (waitingQueue == null)
 				return;
 			else if (waitingQueue.owner == null)
@@ -322,15 +282,13 @@ public class PriorityScheduler extends Scheduler
 			else if (waitingQueue.pickNextThread() == null)
 				return;
 
-			if (waitingQueue.transferPriority && 
-				waitingQueue.pickNextThread().getWinningPriority() > waitingQueue.owner.getWinningPriority())
+			if (waitingQueue.transferPriority && waitingQueue.pickNextThread().getWinningPriority() > waitingQueue.owner.getWinningPriority())
 			{
 				waitingQueue.owner.effectivePriority = waitingQueue.pickNextThread().getWinningPriority();
 				waitingQueue.owner.recalculateThreadScheduling();
 				waitingQueue.owner.update();
-			}
-			Lib.debug(dbgQueue, "After Update " + printOwnedQueues(waitingQueue));
-		}
+			}//end if
+		}//end update
 
 		@Override
 		public boolean equals(Object o)
@@ -338,49 +296,20 @@ public class PriorityScheduler extends Scheduler
 			ThreadState curr = (ThreadState)o;
 
 			return (curr.placement == this.placement);
-		}
+		}//end equals
 
 		//Updates the order
 		public void recalculateThreadScheduling()
 		{
 			Lib.assertTrue(Machine.interrupt().disabled());
-
+			
 			if (waitingQueue != null)
 			{
 				waitingQueue.threadStates.remove(this);
 				waitingQueue.threadStates.add(this);
-			}
-		}
+			}//end if
 
-		public String printOwnedQueues(PriorityQueue waitQueue)
-		{
-			if(waitQueue == null)
-				return "waitQueue is null";
-
-			// Iterator<PriorityQueue> it = waitQueue.owner.ownedQueues.iterator();
-			Iterator<ThreadState> it = waitQueue.threadStates.iterator();
-			int i = 0;
-			String temp = "";
-
-			if(waitQueue != null)
-				temp= "--Owner: " + waitQueue.owner.thread.getName() + " Pr: " + waitQueue.owner.getWinningPriority() +" [ ";
-			// temp = "[ ";
-			while(it.hasNext())
-			{
-				ThreadState ts = it.next();
-
-				if(ts == null)
-					continue;
-
-				temp += ts.thread.getName() + " Pr: " + ts.getWinningPriority() + ", ";
-			}
-			temp += " ]";
-
-			// if (waitQueue.pickNextThread() != null)
-			// 	System.out.println("Thread to be popped:" + waitQueue.pickNextThread().thread);
-			// return temp;
-			return temp;
-		}
+		}//end recalculatethreads
 
 		/** The thread with which this object is associated. */
 		protected KThread thread;
